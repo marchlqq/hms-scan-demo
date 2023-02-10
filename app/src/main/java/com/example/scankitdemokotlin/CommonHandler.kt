@@ -155,7 +155,8 @@ class CommonHandler(val activity: Activity, val cameraOperation: CameraOperation
                         }
                     }
                 }
-                commonActivity.scanResultView!!.setCameraInfo(1080, 1920)
+                commonActivity.scanResultView!!.setCameraInfo(1572, 1920)
+//                commonActivity.scanResultView!!.setCameraInfo(1080, 1920)
                 commonActivity.scanResultView!!.invalidate()
                 sendEmptyMessageDelayed(1, 1000)
             } else {

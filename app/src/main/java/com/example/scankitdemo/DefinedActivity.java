@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.FrameLayout;
@@ -98,10 +99,11 @@ public class DefinedActivity extends Activity {
             public void onResult(HmsScan[] result) {
                 //Check the result.
                 if (result != null && result.length > 0 && result[0] != null && !TextUtils.isEmpty(result[0].getOriginalValue())) {
-                    Intent intent = new Intent();
-                    intent.putExtra(SCAN_RESULT, result[0]);
-                    setResult(RESULT_OK, intent);
-                    DefinedActivity.this.finish();
+                    Log.d("hh-tag", "result = " + result.length);
+//                    Intent intent = new Intent();
+//                    intent.putExtra(SCAN_RESULT, result[0]);
+//                    setResult(RESULT_OK, intent);
+//                    DefinedActivity.this.finish();
                 }
             }
         });

@@ -20,7 +20,6 @@ import com.example.scankitdemo.CameraOperation
 import com.example.scankitdemo.R
 import com.example.scankitdemo.draw.ScanResultView
 import com.example.scankitdemokotlin.DefinedActivity.Companion.REQUEST_CODE_PHOTO
-import com.example.scankitdemokotlin.DefinedActivity.Companion.SCAN_RESULT
 import com.example.scankitdemokotlin.MainActivity.Companion.BITMAP_CODE
 import com.example.scankitdemokotlin.MainActivity.Companion.DECODE_MODE
 import com.example.scankitdemokotlin.MainActivity.Companion.MULTIPROCESSOR_ASYN_CODE

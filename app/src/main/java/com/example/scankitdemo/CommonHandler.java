@@ -16,12 +16,16 @@
 package com.example.scankitdemo;
 import android.app.Activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
+import android.graphics.Point;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.YuvImage;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -29,6 +33,8 @@ import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.Display;
+import android.view.WindowManager;
 
 import com.example.scankitdemo.draw.ScanResultView;
 import com.huawei.hmf.tasks.OnFailureListener;
@@ -125,27 +131,120 @@ public final class CommonHandler extends Handler {
         return BitmapFactory.decodeByteArray(stream.toByteArray(), 0, stream.toByteArray().length);
     }
 
+    boolean b = false;
     /**
      * Call the MultiProcessor API in asynchronous mode.
      */
     private void decodeAsyn(int width, int height, byte[] data, final Activity activity, int type) {
         final Bitmap bitmap = convertToBitmap(width, height, data);
-        MLFrame image = MLFrame.fromBitmap(bitmap);
+        final MLFrame image = MLFrame.fromBitmap(bitmap);
         HmsScanAnalyzerOptions options = new HmsScanAnalyzerOptions.Creator().setHmsScanTypes(type).create();
         HmsScanAnalyzer analyzer = new HmsScanAnalyzer(options);
+//        analyzer.analyzInAsyn(image).addOnSuccessListener(new OnSuccessListener<List<HmsScan>>() {
+//            @Override
+//            public void onSuccess(List<HmsScan> hmsScans) {
+//                if (hmsScans != null && hmsScans.size() > 0 && hmsScans.get(0) != null && !TextUtils.isEmpty(hmsScans.get(0).getOriginalValue())) {
+//                    Log.d("hh-tag", "bitmap width = " + bitmap.getWidth() + ", height = " + bitmap.getHeight());
+//
+//                    if (hmsScans.size() == 2) {
+//                        cameraOperation.stopPreview();
+//                        return;
+//                    }
+//
+//                    HmsScan hmsScan = hmsScans.get(0);
+////                    Bitmap bitmap1 = hmsScan.getOriginalBitmap();
+////                    Log.d("hh-tag", "bitmap1 width = " + bitmap1.getWidth() + ", height = " + bitmap1.getHeight());
+//
+//                    HmsScan[] infos = new HmsScan[hmsScans.size()];
+//                    Message message = new Message();
+//                    message.obj = hmsScans.toArray(infos);
+//                    CommonHandler.this.sendMessage(message);
+//                    restart(DEFAULT_ZOOM);
+//                } else {
+//                    restart(DEFAULT_ZOOM);
+//                }
+//                bitmap.recycle();
+//            }
+//        }).addOnFailureListener(new OnFailureListener() {
+//            @Override
+//            public void onFailure(Exception e) {
+//                Log.w(TAG, e);
+//                restart(DEFAULT_ZOOM);
+//                bitmap.recycle();
+//            }
+//        });
+
         analyzer.analyzInAsyn(image).addOnSuccessListener(new OnSuccessListener<List<HmsScan>>() {
             @Override
-            public void onSuccess(List<HmsScan> hmsScans) {
+            public void onSuccess(final List<HmsScan> hmsScans) {
+
                 if (hmsScans != null && hmsScans.size() > 0 && hmsScans.get(0) != null && !TextUtils.isEmpty(hmsScans.get(0).getOriginalValue())) {
+
                     HmsScan[] infos = new HmsScan[hmsScans.size()];
-                    Message message = new Message();
-                    message.obj = hmsScans.toArray(infos);
-                    CommonHandler.this.sendMessage(message);
-                    restart(DEFAULT_ZOOM);
+                    if (b) {
+                        Message message = new Message();
+                        message.obj = hmsScans.toArray(infos);
+                        CommonHandler.this.sendMessage(message);
+                        restart(DEFAULT_ZOOM);
+                        bitmap.recycle();
+                        return;
+                    }
+                    if (hmsScans.size() < 2) {
+                        restart(DEFAULT_ZOOM);
+                        bitmap.recycle();
+                        return;
+                    }
+
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            WindowManager windowManager = (WindowManager) activity.getSystemService(Context.WINDOW_SERVICE);
+                            Display defaultDisplay = windowManager.getDefaultDisplay();
+                            Point outPoint = new Point();
+                            defaultDisplay.getRealSize(outPoint);
+                            float sceenWidth = outPoint.x;
+                            float sceenHeight = outPoint.y;
+                            Log.d("im-tag", "sceenWidth = " + sceenWidth + ", sceenHeight = " + sceenHeight);
+
+                            CommonActivity commonActivity = (CommonActivity) activity;
+                            Log.d("hh-tag", "bitmap: width = " + bitmap.getWidth() + ", height = " + bitmap.getHeight());
+
+
+
+                            Matrix matrix = new Matrix();
+                            matrix.reset();
+                            matrix.postRotate(90);
+                            Log.d("im-tag", "size = " + hmsScans.size());
+                            for (HmsScan hs : hmsScans) {
+                                RectF rect = new RectF(hs.getBorderRect());
+                                Log.d("im-tag", "scan rect size = " + rect.toString());
+                            }
+                            Bitmap bitmap2 = Bitmap.createBitmap(image.getPreviewBitmap(), 0, 0, bitmap.getWidth(),bitmap.getHeight(), matrix, true);
+
+                            commonActivity.scanResultView.add(new ScanResultView.HmsScanGraphic(commonActivity.scanResultView, hmsScans.get(0), Color.YELLOW, bitmap2));
+                            commonActivity.scanResultView.add(new ScanResultView.HmsScanGraphic(commonActivity.scanResultView, hmsScans.get(1), Color.YELLOW, bitmap2));
+
+                            commonActivity.scanResultView.setCameraInfo(1080, 1920);
+                            commonActivity.scanResultView.invalidate();
+
+                            if (hmsScans.size() == 2) {
+                                cameraOperation.stopPreview();
+                                return;
+                            }
+
+//                            sceenWidth = 2340, sceenHeight = 1080
+//                            bitmap: width = 2340, height = 1080
+
+                        }
+                    });
                 } else {
-                    restart(DEFAULT_ZOOM);
+                    if (b) {
+                        restart(DEFAULT_ZOOM);
+                    }
                 }
-                bitmap.recycle();
+                if (b) {
+                    bitmap.recycle();
+                }
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override

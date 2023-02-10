@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Point;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
@@ -68,6 +69,25 @@ public class CommonActivity extends Activity  {
     private TextView mscanTips;
     public static final String SCAN_RESULT = "scanResult";
 
+    /**
+     * 隐藏状态栏
+     */
+    protected void hideBottomUIMenu() {
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+        | View.SYSTEM_UI_FLAG_FULLSCREEN
+        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            WindowManager.LayoutParams lp = getWindow().getAttributes();
+            lp.layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            getWindow().setAttributes(lp);
+        }
+    }
+
     public ScanResultView scanResultView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +95,10 @@ public class CommonActivity extends Activity  {
         Window window = getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+//                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        hideBottomUIMenu();
+
         setContentView(R.layout.activity_common);
         mode = getIntent().getIntExtra(MainActivity.DECODE_MODE, defaultValue);
         mscanArs = findViewById(R.id.scan_ars);
@@ -112,6 +136,10 @@ public class CommonActivity extends Activity  {
 
         scanResultView = findViewById(R.id.scan_result_view);
     }
+    public static float sw = 0;
+    public static float sh = 0;
+    public static float leftM = 0;
+    public static float topM = 0;
 
     private void adjustSurface(SurfaceView cameraPreview) {
         FrameLayout.LayoutParams paramSurface = (FrameLayout.LayoutParams) cameraPreview.getLayoutParams();
@@ -123,21 +151,35 @@ public class CommonActivity extends Activity  {
             float sceenWidth = outPoint.x;
             float sceenHeight = outPoint.y;
             float rate;
-            if (sceenWidth / (float) 1080 > sceenHeight / (float) 1920) {
-                rate = sceenWidth / (float) 1080;
-                int targetHeight = (int) (1920 * rate);
+
+//            CameraOperation.height = (int) sceenHeight;
+//            CameraOperation.width = (int) sceenWidth;
+
+            if (sceenWidth / (float) CameraOperation.height > sceenHeight / (float) CameraOperation.width) {
+                rate = sceenWidth / (float) CameraOperation.height;
+                int targetHeight = (int) (CameraOperation.width * rate);
                 paramSurface.width = FrameLayout.LayoutParams.MATCH_PARENT;
                 paramSurface.height = targetHeight;
+                sw = sceenWidth;
+                sh = targetHeight;
                 int topMargin = (int) (-(targetHeight - sceenHeight) / 2);
+                leftM = 0;
+                topM = topMargin;
+                Log.d("hh-tag", "sw = " + sw + ", sh = " + sh + ", topM = " + topMargin);
                 if (topMargin < 0) {
                     paramSurface.topMargin = topMargin;
                 }
             } else {
-                rate = sceenHeight / (float) 1920;
-                int targetWidth = (int) (1080 * rate);
+                rate = sceenHeight / (float) CameraOperation.width;
+                int targetWidth = (int) (CameraOperation.height * rate);
                 paramSurface.width = targetWidth;
                 paramSurface.height = FrameLayout.LayoutParams.MATCH_PARENT;
+                sw = targetWidth;
+                sh = sceenHeight;
                 int leftMargin = (int) (-(targetWidth - sceenWidth) / 2);
+                leftM = leftMargin;
+                topM = 0;
+                Log.d("hh-tag", "sw = " + sw + ", sh = " + sh + ", leftM = " + leftMargin);
                 if (leftMargin < 0) {
                     paramSurface.leftMargin = leftMargin;
                 }

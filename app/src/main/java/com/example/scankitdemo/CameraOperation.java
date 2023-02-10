@@ -32,8 +32,8 @@ public class CameraOperation {
     private Camera.Parameters parameters = null;
     private boolean isPreview = false;
     private FrameCallback frameCallback = new FrameCallback();
-    private int width = 1920;
-    private int height = 1080;
+    public static int width = 1920;
+    public static int height = 1080;
     private double defaultZoom = 1.0;
 
     /**

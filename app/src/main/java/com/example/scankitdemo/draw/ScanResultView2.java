@@ -21,7 +21,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -41,14 +40,13 @@ import android.widget.ImageView.ScaleType;
 
 import androidx.annotation.Nullable;
 
-import com.example.scankitdemo.CommonActivity;
 import com.example.scankitdemo.R;
 import com.huawei.hms.ml.scan.HmsScan;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ScanResultView extends FrameLayout {
+public class ScanResultView2 extends FrameLayout {
 
     private final Object lock = new Object();
     protected float widthScaleFactor = 1.0f;
@@ -58,11 +56,11 @@ public class ScanResultView extends FrameLayout {
 
     private final List<HmsScanGraphic> hmsScanGraphics = new ArrayList<>();
 
-    public ScanResultView(Context context) {
+    public ScanResultView2(Context context) {
         super(context);
     }
 
-    public ScanResultView(Context context, @Nullable AttributeSet attrs) {
+    public ScanResultView2(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
     }
 
@@ -99,15 +97,8 @@ public class ScanResultView extends FrameLayout {
             float sceenHeight = outPoint.y;
 
             if ((previewWidth != 0) && (previewHeight != 0)) {
-//                widthScaleFactor = (float) 1080 / (float) previewWidth;
-//                heightScaleFactor = (float) 2208 / sceenHeight;
-
-                // 屏幕的宽高，和图片的宽高，计算出比例
-                widthScaleFactor = CommonActivity.sw / 1080f;
-                heightScaleFactor = CommonActivity.sh / 2340f;
-
-//                widthScaleFactor = CommonActivity.sw / 1440f;
-//                heightScaleFactor = CommonActivity.sh / 2560f;
+                widthScaleFactor = (float) 1080 / (float) previewWidth;
+                heightScaleFactor = (float) 2208 / sceenHeight;
             }
 
             removeAllViews();
@@ -130,9 +121,6 @@ public class ScanResultView extends FrameLayout {
             if ((previewWidth != 0) && (previewHeight != 0)) {
                 widthScaleFactor = (float) canvas.getWidth() / (float) previewWidth;
                 heightScaleFactor = (float) canvas.getHeight() / (float) previewHeight;
-
-                widthScaleFactor = CommonActivity.sw / 1080f;
-                heightScaleFactor = CommonActivity.sh / 2340f;
             }
 
             for (HmsScanGraphic graphic : hmsScanGraphics) {
@@ -150,14 +138,14 @@ public class ScanResultView extends FrameLayout {
         private final Paint rectPaint;
         private final Paint hmsScanResult;
         private final HmsScan hmsScan;
-        private ScanResultView scanResultView;
+        private ScanResultView2 scanResultView;
         private Bitmap sourceBitmap;
 
-        public HmsScanGraphic(ScanResultView scanResultView, HmsScan hmsScan) {
+        public HmsScanGraphic(ScanResultView2 scanResultView, HmsScan hmsScan) {
             this(scanResultView, hmsScan, Color.WHITE);
         }
 
-        public HmsScanGraphic(ScanResultView scanResultView, HmsScan hmsScan, int color) {
+        public HmsScanGraphic(ScanResultView2 scanResultView, HmsScan hmsScan, int color) {
             this.scanResultView = scanResultView;
             this.hmsScan = hmsScan;
 
@@ -171,7 +159,7 @@ public class ScanResultView extends FrameLayout {
             hmsScanResult.setTextSize(TEXT_SIZE);
         }
 
-        public HmsScanGraphic(ScanResultView scanResultView, HmsScan hmsScan, int color, Bitmap bitmap) {
+        public HmsScanGraphic(ScanResultView2 scanResultView, HmsScan hmsScan, int color, Bitmap bitmap) {
             this.scanResultView = scanResultView;
             this.hmsScan = hmsScan;
             this.sourceBitmap = bitmap;
@@ -230,41 +218,15 @@ public class ScanResultView extends FrameLayout {
 
             Rect fixRect = new Rect();
 
-            Log.d("hh-tag", "widthScaleFactor = " + scanResultView.widthScaleFactor + ", heightScaleFactor = " + scanResultView.heightScaleFactor);
+            Log.d("im-tag", "widthScaleFactor = " + scanResultView.widthScaleFactor + ", heightScaleFactor = " + scanResultView.heightScaleFactor);
             fixRect.left = (int) scaleX(rect.top);
             fixRect.right = (int) scaleX(rect.bottom);
 
             fixRect.top = (int) scaleY(rect.left);
             fixRect.bottom = (int) scaleY(rect.right);
 
-            Log.d("hh-tag", "rect = " + rect.toString());
-
-            RectF other = new RectF();
-            float x = rect.top;
-            float t = x / (CommonActivity.sw / 2f) * CommonActivity.leftM;
-            // 扫码返回的是旋转了90度的，所有top 是left数据
-            // 图片靠右，top数据越小，需要使用屏幕的宽度，减去缩放成屏幕的宽度数据，在添加最开始的布局距离
-            other.left = CommonActivity.sw-scaleX(rect.top) + CommonActivity.leftM;
-            Log.d("hh-tag", "x = " + x + ", t = " + t + " width = " + CommonActivity.sw + ", left = " + other.left);
-
-            float tx = rect.left;
-            float tx1 = tx / (CommonActivity.sh / 2f) * CommonActivity.topM;
-            float tx11 = tx / (CommonActivity.sh / 2f) * CommonActivity.topM;
-            // 将left值转换成y坐标，然后添加topM，计算出距离上面的距离
-            other.top = scaleY(rect.left) + CommonActivity.topM;
-
-            float x1 = rect.bottom;
-            float t1 = x1 / (CommonActivity.sw / 2f) * CommonActivity.leftM;
-            other.right = CommonActivity.sw-scaleX(rect.bottom )+ CommonActivity.leftM;
-
-            float tx2 = rect.right;
-            float tx22 = tx2 / (CommonActivity.sh / 2f) * CommonActivity.topM;
-            other.bottom = scaleY(rect.right) + CommonActivity.topM;
-
-            Log.d("hh-tag", "other = " + other.toString());
-
-            int midX = (int) ((other.right - other.left) / 2 + other.left);
-            int minY = (int) ((other.bottom - other.top) / 2 + other.top);
+            int midX = (fixRect.right - fixRect.left) / 2 + fixRect.left;
+            int minY = (fixRect.bottom - fixRect.top) / 2 + fixRect.top;
             int left = midX - width / 2;
 //            int right = midX + width /2;
             int top = minY - height /2;
@@ -278,9 +240,8 @@ public class ScanResultView extends FrameLayout {
                 Log.d("im-tag", "sourceBitmap: width = " + sourceBitmap.getWidth() + ", height = " + sourceBitmap.getHeight());
                 ImageView bgView = new ImageView(layout.getContext());
                 bgView.setImageBitmap(sourceBitmap);
-                // 将图片的距离，设置成最开始的宽高，做覆盖使用
-                LayoutParams params = new LayoutParams((int) CommonActivity.sw, (int) CommonActivity.sh);
-                params.setMargins((int) CommonActivity.leftM, (int) CommonActivity.topM, 0, 0);
+                LayoutParams params = new LayoutParams(-1, -1);
+                params.setMargins(0, 0, 0, 0);
                 layout.addView(bgView, params);
                 bgView.setScaleType(ScaleType.FIT_XY);
 
@@ -289,7 +250,7 @@ public class ScanResultView extends FrameLayout {
             }
 
             ImageView imageView = new ImageView(layout.getContext());
-            LayoutParams params = new LayoutParams(width, height);
+            LayoutParams params = new LayoutParams(35 * 3, 35 * 3);
 //            canvas.drawText(hmsScan.getOriginalValue(), left, top, hmsScanResult);
             params.leftMargin = left;
             params.topMargin = top;

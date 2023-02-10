@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 package com.example.scankitdemo;
+import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+
 import android.Manifest;
+import android.Manifest.permission;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -22,9 +26,12 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -143,9 +150,14 @@ public class MainActivity extends Activity implements ActivityCompat.OnRequestPe
      * Apply for permissions.
      */
     private void decodePermission(int requestCode) {
+        if (VERSION.SDK_INT >= VERSION_CODES.M) {
+            if (checkSelfPermission(READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                Log.d("hh-tag", "has per");
+            }
+        }
         ActivityCompat.requestPermissions(
                 this,
-                new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE},
+                new String[]{permission.CAMERA, READ_EXTERNAL_STORAGE},
                 requestCode);
     }
 
@@ -171,14 +183,14 @@ public class MainActivity extends Activity implements ActivityCompat.OnRequestPe
             return;
         }
 
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && requestCode == GENERATE_CODE) {
-            Intent intent = new Intent(this, GenerateCodeActivity.class);
-            this.startActivity(intent);
-        }
-
-        if (grantResults.length < 2 || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
+//        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && requestCode == GENERATE_CODE) {
+//            Intent intent = new Intent(this, GenerateCodeActivity.class);
+//            this.startActivity(intent);
+//        }
+//
+//        if (grantResults.length < 2 || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED) {
+//            return;
+//        }
         //Default View Mode
         if (requestCode == CAMERA_REQ_CODE) {
             ScanUtil.startScan(this, REQUEST_CODE_SCAN_ONE, new HmsScanAnalyzerOptions.Creator().create());
