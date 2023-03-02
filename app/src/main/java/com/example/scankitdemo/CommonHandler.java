@@ -132,6 +132,8 @@ public final class CommonHandler extends Handler {
     }
 
     boolean b = false;
+    public static int bitmapW = 0;
+    public static int bitmapH = 0;
     /**
      * Call the MultiProcessor API in asynchronous mode.
      */
@@ -220,6 +222,8 @@ public final class CommonHandler extends Handler {
                                 Log.d("im-tag", "scan rect size = " + rect.toString());
                             }
                             Bitmap bitmap2 = Bitmap.createBitmap(image.getPreviewBitmap(), 0, 0, bitmap.getWidth(),bitmap.getHeight(), matrix, true);
+                            bitmapW = bitmap.getWidth();
+                            bitmapH = bitmap.getHeight();
 
                             commonActivity.scanResultView.add(new ScanResultView.HmsScanGraphic(commonActivity.scanResultView, hmsScans.get(0), Color.YELLOW, bitmap2));
                             commonActivity.scanResultView.add(new ScanResultView.HmsScanGraphic(commonActivity.scanResultView, hmsScans.get(1), Color.YELLOW, bitmap2));
@@ -227,7 +231,7 @@ public final class CommonHandler extends Handler {
                             commonActivity.scanResultView.setCameraInfo(1080, 1920);
                             commonActivity.scanResultView.invalidate();
 
-                            if (hmsScans.size() == 2) {
+                            if (hmsScans.size() >= 2) {
                                 cameraOperation.stopPreview();
                                 return;
                             }
@@ -238,13 +242,13 @@ public final class CommonHandler extends Handler {
                         }
                     });
                 } else {
-                    if (b) {
+//                    if (b) {
                         restart(DEFAULT_ZOOM);
-                    }
+//                    }
                 }
-                if (b) {
+//                if (b) {
                     bitmap.recycle();
-                }
+//                }
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
